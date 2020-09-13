@@ -19,9 +19,11 @@ import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
 import java.util.Random;
 
 import static android.graphics.Bitmap.createBitmap;
@@ -31,7 +33,7 @@ public class threecarview extends View {
     Paint rectPaint, pathPaintgreen, pathPaintred, pathPaintblue;
     Bitmap bitmapred, bitmapgreen, bitmapblue;
     Path pathred, pathgreen, pathblue;
-    boolean statgreen = false, statred = false, statblue = false, movestatgreen = false, movestatred = false, movestatblue = false , extragreen = false , extrared = false , extrablue = false;
+    boolean statgreen = false, statred = false, statblue = false, movestatgreen = false, movestatred = false, movestatblue = false, extragreen = false, extrared = false, extrablue = false;
 
     int bm_offsetX, bm_offsetY;
 
@@ -58,6 +60,9 @@ public class threecarview extends View {
 
     Vibrator vibrator;
     MediaPlayer mediaPlayer;
+
+
+    float hnjgreen, pnjgreen = 0, hnjred, pnjred = 0, hnjblue, pnjblue = 0;
 
 
     public threecarview(Context context) {
@@ -166,7 +171,7 @@ public class threecarview extends View {
         canvas.drawPath(pathgreen, pathPaintgreen);
         canvas.drawPath(pathred, pathPaintred);
         canvas.drawPath(pathblue, pathPaintblue);
-        if(!movestatblue || !movestatgreen || !movestatred) {
+        if (!movestatblue || !movestatgreen || !movestatred) {
             canvas.drawBitmap(bitmapgreen, bmpposx1, bmpposy1, null);
             canvas.drawBitmap(bitmapred, bmpposx2, bmpposy2, null);
             canvas.drawBitmap(bitmapblue, bmpposx3, bmpposy3, null);
@@ -184,8 +189,31 @@ public class threecarview extends View {
         canvas.drawLine(getWidth() / 2 + 120 + 67, 150, getWidth() / 2 + 120 + 67, 500, rectPaint);
 
 
+        if (movestatred && movestatgreen && movestatblue) {
+            bm_offsetX -=30;
+            if(posblue[1] < getHeight() - 250 - bitmapblue.getHeight() / 2 -150 && posgreen[1] < getHeight() - 250 - bitmapblue.getHeight() / 2 -150 && posred[1] < getHeight() - 250 - bitmapblue.getHeight() / 2 -150)
+            if ((posgreen[0] + bm_offsetX > posred[0] - bm_offsetX && posgreen[0] - bm_offsetX < posred[0] - bm_offsetX && posgreen[1] < posred[1] + bm_offsetY && posgreen[1] > posred[1] - bm_offsetY)
+                    || (posgreen[0] - bm_offsetX < posred[0] + bm_offsetX && posgreen[0] + bm_offsetX > posred[0] + bm_offsetX && posgreen[1] < posred[1] + bm_offsetY && posgreen[1] > posred[1] - bm_offsetY) ||
+                    (posgreen[0] > posred[0] - bm_offsetX && posgreen[0] < posred[0] + bm_offsetX && posgreen[1] - bm_offsetY < posred[1] + bm_offsetY && posgreen[1] - bm_offsetY > posred[1] - bm_offsetY)
+                    || (posblue[0] + bm_offsetX > posred[0] - bm_offsetX && posblue[0] - bm_offsetX < posred[0] - bm_offsetX && posblue[1] < posred[1] + bm_offsetY && posblue[1] > posred[1] - bm_offsetY)
+                    || (posblue[0] - bm_offsetX < posred[0] + bm_offsetX && posblue[0] + bm_offsetX > posred[0] + bm_offsetX && posblue[1] < posred[1] + bm_offsetY && posblue[1] > posred[1] - bm_offsetY) ||
+                    (posblue[0] > posred[0] - bm_offsetX && posblue[0] < posred[0] + bm_offsetX && posblue[1] - bm_offsetY < posred[1] + bm_offsetY && posblue[1] - bm_offsetY > posred[1] - bm_offsetY)
+                    || (posgreen[0] + bm_offsetX > posblue[0] - bm_offsetX && posgreen[0] - bm_offsetX < posblue[0] - bm_offsetX && posgreen[1] < posblue[1] + bm_offsetY && posgreen[1] > posblue[1] - bm_offsetY)
+                    || (posgreen[0] - bm_offsetX < posblue[0] + bm_offsetX && posgreen[0] + bm_offsetX > posblue[0] + bm_offsetX && posgreen[1] < posblue[1] + bm_offsetY && posgreen[1] > posblue[1] - bm_offsetY) ||
+                    (posgreen[0] > posblue[0] - bm_offsetX && posgreen[0] < posblue[0] + bm_offsetX && posgreen[1] - bm_offsetY < posblue[1] + bm_offsetY && posgreen[1] - bm_offsetY > posblue[1] - bm_offsetY)) {
 
-        if(movestatred && movestatgreen && movestatblue){
+                movestatgreen = false;
+                movestatred = false;
+                movestatblue = false;
+                vibrator.vibrate(700);
+                mediaPlayer.start();
+                ;Toast.makeText(getContext() , "COLLISION!!!" , Toast.LENGTH_LONG).show();
+
+
+            }
+            bm_offsetX += 30;
+
+
             if (distancegreen < pathLengthgreen) {
                 pathMeasuregreen.getPosTan(distancegreen, posgreen, tangreen);
                 matrixgreen.reset();
@@ -194,22 +222,20 @@ public class threecarview extends View {
                 curXgreen = posgreen[0] - bm_offsetX;
                 curYgreen = posgreen[1] - bm_offsetY;
                 matrixgreen.postTranslate(curXgreen, curYgreen);
-                float hnj , pnj = 0;
-                if(degrees>-100 && degrees<-80){
-                    hnj = bm_offsetY;
+                if (degrees > -100 && degrees < -80) {
+                    hnjgreen = bm_offsetY;
+                } else {
+                    hnjgreen = bm_offsetX;
                 }
-                else{
-                    hnj  = bm_offsetX;
+                if (!(degrees > -150 && degrees < -30) && !(degrees > 30 && degrees < 150)) {
+                    pnjgreen = bm_offsetY;
                 }
-                if(!(degrees>-150 && degrees < -30) && !(degrees>30 && degrees<150)){
-                    pnj = bm_offsetY;
-                }
+
                 canvas.drawBitmap(bitmapgreen, matrixgreen, null);
                 distancegreen += step;
             } else {
                 movestatgreen = false;
             }
-
             if (distancered < pathLengthred) {
                 pathMeasurereed.getPosTan(distancered, posred, tanred);
                 matrixred.reset();
@@ -218,15 +244,13 @@ public class threecarview extends View {
                 curXred = posred[0] - bm_offsetX;
                 curYred = posred[1] - bm_offsetY;
                 matrixred.postTranslate(curXred, curYred);
-                float hnj , pnj = 0;
-                if(degrees>-100 && degrees<-80){
-                    hnj = bm_offsetY;
+                if (degrees > -100 && degrees < -80) {
+                    hnjred = bm_offsetY;
+                } else {
+                    hnjred = bm_offsetX;
                 }
-                else{
-                    hnj  = bm_offsetX;
-                }
-                if(!(degrees>-150 && degrees < -30) && !(degrees>30 && degrees<150)){
-                    pnj = bm_offsetY;
+                if (!(degrees > -150 && degrees < -30) && !(degrees > 30 && degrees < 150)) {
+                    pnjred = bm_offsetY;
                 }
                 canvas.drawBitmap(bitmapred, matrixred, null);
                 distancered += step;
@@ -242,22 +266,20 @@ public class threecarview extends View {
                 curXblue = posblue[0] - bm_offsetX;
                 curYblue = posblue[1] - bm_offsetY;
                 matrixblue.postTranslate(curXblue, curYblue);
-                float hnj , pnj = 0;
-                if(degrees>-100 && degrees<-80){
-                    hnj = bm_offsetY;
+                if (degrees > -100 && degrees < -80) {
+                    hnjblue = bm_offsetY;
+                } else {
+                    hnjblue = bm_offsetX;
                 }
-                else{
-                    hnj  = bm_offsetX;
-                }
-                if(!(degrees>-150 && degrees < -30) && !(degrees>30 && degrees<150)){
-                    pnj = bm_offsetY;
+                if (!(degrees > -150 && degrees < -30) && !(degrees > 30 && degrees < 150)) {
+                    pnjblue = bm_offsetY;
                 }
                 canvas.drawBitmap(bitmapblue, matrixblue, null);
                 distanceblue += step;
             } else {
                 movestatblue = false;
             }
-            if(distancegreen > pathLengthgreen && distancered > pathLengthred && distanceblue > pathLengthblue){
+            if (distancegreen > pathLengthgreen && distancered > pathLengthred && distanceblue > pathLengthblue) {
                 distanceblue = distancegreen = distancered = 0;
             }
             invalidate();
@@ -299,80 +321,71 @@ public class threecarview extends View {
             }
             case MotionEvent.ACTION_UP: {
 
-                if (statgreen ){
-                    if((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500) || (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500)
-                    || (xx > getWidth() / 2 +190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500)) {
+                if (statgreen) {
+                    if ((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500) || (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500)
+                            || (xx > getWidth() / 2 + 190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500)) {
                         movestatgreen = true;
                         matrixgreen.postRotate(90);
-                        if((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500)) {
+                        if ((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500)) {
                             pathgreen.lineTo(getWidth() / 2 - 123 - 197, 325);
-                        }
-                        else if(xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500){
+                        } else if (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500) {
                             pathgreen.lineTo(getWidth() / 2, 325);
-                        }
-                        else if(xx > getWidth() / 2 +190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500){
+                        } else if (xx > getWidth() / 2 + 190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500) {
                             pathgreen.lineTo(getWidth() / 2 + 123 + 197, 325);
                         }
                         pathMeasuregreen = new PathMeasure(pathgreen, false);
                         pathLengthgreen = pathMeasuregreen.getLength();
                         statgreen = false;
                         extragreen = true;
-                    }
-                    else{
+                    } else {
                         statgreen = false;
                         pathgreen.reset();
                     }
                     invalidate();
-                }
-                else if (statred) {
-                    if((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500) || (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500)
-                            || (xx > getWidth() / 2 +190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500)) {
+                } else if (statred) {
+                    if ((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500) || (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500)
+                            || (xx > getWidth() / 2 + 190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500)) {
                         movestatred = true;
-                        matrixred.postRotate(90);if((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500)) {
+                        matrixred.postRotate(90);
+                        if ((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500)) {
                             pathred.lineTo(getWidth() / 2 - 123 - 197, 325);
-                        }
-                        else if(xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500){
+                        } else if (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500) {
                             pathred.lineTo(getWidth() / 2, 325);
-                        }
-                        else if(xx > getWidth() / 2 +190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500){
+                        } else if (xx > getWidth() / 2 + 190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500) {
                             pathred.lineTo(getWidth() / 2 + 123 + 197, 325);
                         }
                         pathMeasurereed = new PathMeasure(pathred, false);
                         pathLengthred = pathMeasurereed.getLength();
                         statred = false;
                         extrared = true;
-                    }
-                    else{
+                    } else {
                         statred = false;
                         pathred.reset();
                     }
                     invalidate();
-                }
-                else if (statblue){
-                    if((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500) || (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500)
-                            || (xx > getWidth() / 2 +190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500)) {
+                } else if (statblue) {
+                    if ((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500) || (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500)
+                            || (xx > getWidth() / 2 + 190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500)) {
                         movestatblue = true;
-                        matrixblue.postRotate(90);if((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500)) {
+                        matrixblue.postRotate(90);
+                        if ((xx > getWidth() / 2 - 440 && yy > 150 && xx < getWidth() / 2 - 190 && yy < 500)) {
                             pathblue.lineTo(getWidth() / 2 - 123 - 197, 325);
-                        }
-                        else if(xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500){
+                        } else if (xx > getWidth() / 2 - 150 && yy > 150 && xx < getWidth() / 2 + 150 && yy < 500) {
                             pathblue.lineTo(getWidth() / 2, 325);
-                        }
-                        else if(xx > getWidth() / 2 +190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500){
+                        } else if (xx > getWidth() / 2 + 190 && yy > 150 && xx < getWidth() / 2 + 440 && yy < 500) {
                             pathblue.lineTo(getWidth() / 2 + 123 + 197, 325);
                         }
                         pathMeasureblue = new PathMeasure(pathblue, false);
                         pathLengthblue = pathMeasureblue.getLength();
                         statblue = false;
                         extrablue = true;
-                    }
-                    else{
+                    } else {
                         statblue = false;
                         pathblue.reset();
                     }
                     invalidate();
                 }
-                if(movestatblue && movestatred && movestatgreen) {
+                if (movestatblue && movestatred && movestatgreen) {
                     extrablue = extragreen = extrared = false;
                     bmpposx1 = getWidth() / 2 - 123 - 197 - bitmapgreen.getWidth() / 2;
                     bmpposy1 = 325 - bitmapgreen.getHeight() / 2;
@@ -390,5 +403,37 @@ public class threecarview extends View {
         }
 
         return val;
+    }
+
+    public void redo() {
+        statgreen = false;
+        statred = false;
+        statblue = false;
+        pathred.reset();
+        pathgreen.reset();
+        pathblue.reset();
+        movestatgreen = false;
+        movestatred = false;
+        movestatblue = false;
+        count = 0;
+        distancegreen = 0;
+        distancered = 0;
+        distanceblue = 0;
+        curXgreen = 0;
+        curXred = 0;
+        curXblue = 0;
+        curYred = 0;
+        curYgreen = 0;
+        curYblue = 0;
+        bm_offsetX = bitmapred.getWidth()/2;
+        bm_offsetY = bitmapred.getHeight()/2;
+        mediaPlayer.stop();
+        try {
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
+        }
+        postInvalidate();
+
     }
 }
