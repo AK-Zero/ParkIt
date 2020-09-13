@@ -33,7 +33,7 @@ public class threecarview extends View {
     Paint rectPaint, pathPaintgreen, pathPaintred, pathPaintblue;
     Bitmap bitmapred, bitmapgreen, bitmapblue;
     Path pathred, pathgreen, pathblue;
-    boolean statgreen = false, statred = false, statblue = false, movestatgreen = false, movestatred = false, movestatblue = false, extragreen = false, extrared = false, extrablue = false;
+    boolean pop = false , statgreen = false, statred = false, statblue = false, movestatgreen = false, movestatred = false, movestatblue = false, extragreen = false, extrared = false, extrablue = false;
 
     int bm_offsetX, bm_offsetY;
 
@@ -171,10 +171,38 @@ public class threecarview extends View {
         canvas.drawPath(pathgreen, pathPaintgreen);
         canvas.drawPath(pathred, pathPaintred);
         canvas.drawPath(pathblue, pathPaintblue);
-        if (!movestatblue || !movestatgreen || !movestatred) {
+        if ((!movestatblue || !movestatgreen || !movestatred) && !pop ) {
             canvas.drawBitmap(bitmapgreen, bmpposx1, bmpposy1, null);
             canvas.drawBitmap(bitmapred, bmpposx2, bmpposy2, null);
             canvas.drawBitmap(bitmapblue, bmpposx3, bmpposy3, null);
+        }
+        if(pop){
+            pathMeasuregreen.getPosTan(distancegreen, posgreen, tangreen);
+            matrixgreen.reset();
+            float degrees = (float) (Math.atan2(tangreen[1], tangreen[0]) * 180.0 / Math.PI);
+            matrixgreen.postRotate(degrees + 90, bm_offsetX, bm_offsetY);
+            curXgreen = posgreen[0] - bm_offsetX;
+            curYgreen = posgreen[1] - bm_offsetY;
+            matrixgreen.postTranslate(curXgreen, curYgreen);
+            canvas.drawBitmap(bitmapgreen, matrixgreen, null);
+
+            pathMeasurereed.getPosTan(distancered, posred, tanred);
+            matrixred.reset();
+            float degrees1 = (float) (Math.atan2(tanred[1], tanred[0]) * 180.0 / Math.PI);
+            matrixred.postRotate(degrees1 + 90, bm_offsetX, bm_offsetY);
+            curXred = posred[0] - bm_offsetX;
+            curYred = posred[1] - bm_offsetY;
+            matrixred.postTranslate(curXred, curYred);
+            canvas.drawBitmap(bitmapred, matrixred, null);
+
+            pathMeasureblue.getPosTan(distanceblue, posblue, tanblue);
+            matrixblue.reset();
+            float degrees2 = (float) (Math.atan2(tanblue[1], tanblue[0]) * 180.0 / Math.PI);
+            matrixblue.postRotate(degrees2 + 90, bm_offsetX, bm_offsetY);
+            curXblue = posblue[0] - bm_offsetX;
+            curYblue = posblue[1] - bm_offsetY;
+            matrixblue.postTranslate(curXblue, curYblue);
+            canvas.drawBitmap(bitmapblue, matrixblue, null);
         }
         canvas.drawLine(getWidth() / 2 - 123, 150, getWidth() / 2 + 123, 150, rectPaint);
         canvas.drawLine(getWidth() / 2 - 120, 150, getWidth() / 2 - 120, 500, rectPaint);
@@ -190,7 +218,8 @@ public class threecarview extends View {
 
 
         if (movestatred && movestatgreen && movestatblue) {
-            bm_offsetX -=30;
+            bm_offsetX -=40;
+            bm_offsetY -= 20;
             if(posblue[1] < getHeight() - 250 - bitmapblue.getHeight() / 2 -150 && posgreen[1] < getHeight() - 250 - bitmapblue.getHeight() / 2 -150 && posred[1] < getHeight() - 250 - bitmapblue.getHeight() / 2 -150)
             if ((posgreen[0] + bm_offsetX > posred[0] - bm_offsetX && posgreen[0] - bm_offsetX < posred[0] - bm_offsetX && posgreen[1] < posred[1] + bm_offsetY && posgreen[1] > posred[1] - bm_offsetY)
                     || (posgreen[0] - bm_offsetX < posred[0] + bm_offsetX && posgreen[0] + bm_offsetX > posred[0] + bm_offsetX && posgreen[1] < posred[1] + bm_offsetY && posgreen[1] > posred[1] - bm_offsetY) ||
@@ -207,11 +236,12 @@ public class threecarview extends View {
                 movestatblue = false;
                 vibrator.vibrate(700);
                 mediaPlayer.start();
-                ;Toast.makeText(getContext() , "COLLISION!!!" , Toast.LENGTH_LONG).show();
-
+                Toast.makeText(getContext() , "COLLISION!!!" , Toast.LENGTH_LONG).show();
+                pop = true;
 
             }
-            bm_offsetX += 30;
+            bm_offsetX += 40;
+            bm_offsetY+=20;
 
 
             if (distancegreen < pathLengthgreen) {
@@ -281,6 +311,8 @@ public class threecarview extends View {
             }
             if (distancegreen > pathLengthgreen && distancered > pathLengthred && distanceblue > pathLengthblue) {
                 distanceblue = distancegreen = distancered = 0;
+                Toast.makeText(getContext() , "NICE!!!" , Toast.LENGTH_LONG).show();
+
             }
             invalidate();
         }
@@ -406,6 +438,10 @@ public class threecarview extends View {
     }
 
     public void redo() {
+        pop = false;
+        matrixblue.reset();
+        matrixred.reset();
+        matrixgreen.reset();
         statgreen = false;
         statred = false;
         statblue = false;
@@ -427,6 +463,21 @@ public class threecarview extends View {
         curYblue = 0;
         bm_offsetX = bitmapred.getWidth()/2;
         bm_offsetY = bitmapred.getHeight()/2;
+        curXgreen = 0;
+        curYgreen = 0;
+        curXred = 0;
+        curYred = 0;
+        curXblue = 0;
+        curYblue = 0;
+
+        tangreen = new float[2];
+        posgreen = new float[2];
+
+        tanred = new float[2];
+        posred = new float[2];
+
+        tanblue = new float[2];
+        posblue = new float[2];
         mediaPlayer.stop();
         try {
             mediaPlayer.prepare();
